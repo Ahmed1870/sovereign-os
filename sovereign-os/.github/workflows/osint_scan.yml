@@ -1,0 +1,117 @@
+name: Sovereign OS — Automated OSINT Scan
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of scan to run'
+        required: true
+        default: 'breach_monitor'
+        type: choice
+        options: [breach_monitor, platform_scan, full_audit]
+
+jobs:
+  breach-monitor:
+    name: Breach Database Monitor
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'breach_monitor' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install httpx aiohttp holehe requests python-dotenv tenacity
+
+      - name: Run breach monitoring scan
+        env:
+          HAVEIBEENPWNED_API_KEY: ${{ secrets.HAVEIBEENPWNED_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python github-actions/breach_monitor.py
+
+      - name: Notify on new breaches
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 New Breach Detected - ' + new Date().toISOString().split('T')[0],
+              body: 'Automated breach monitoring detected new exposures. Check the Actions run for details.',
+              labels: ['security', 'breach']
+            })
+
+  platform-footprint:
+    name: Platform Footprint Audit
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'platform_scan'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install holehe and sherlock
+        run: |
+          pip install holehe requests aiohttp
+
+      - name: Run platform scan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python github-actions/platform_scan.py
+
+  security-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.scan_type == 'full_audit'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Audit Python dependencies
+        run: |
+          pip install pip-audit
+          pip-audit -r backend/requirements.txt --format json -o audit-results.json || true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Audit Node dependencies
+        run: |
+          cd frontend
+          npm audit --json > ../npm-audit.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-${{ github.run_id }}
+          path: |
+            audit-results.json
+            npm-audit.json
+          retention-days: 30
