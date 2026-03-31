@@ -11,7 +11,7 @@ const severityConfig: Record<string, { icon: any; className: string }> = {
   info:     { icon: Info,          className: 'text-[#5ac8fa]' },
 };
 
-export default function AlertFeed({ alerts }: { alerts: Alert[] }) {
+export default function AlertFeed({ alerts }: { alerts: any[] }) {
   if (!alerts.length) {
     return (
       <div className="flex flex-col items-center py-10 text-center">
