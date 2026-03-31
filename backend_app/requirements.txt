@@ -13,7 +13,7 @@ python-multipart==0.0.9
 slowapi==0.1.9
 redis==5.0.4
 celery==5.4.0
-holehe==1.62
+holehe==1.61
 requests==2.32.3
 beautifulsoup4==4.12.3
 lxml==5.2.2
