@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Shield, LayoutDashboard, Radar, Smartphone, Trash2, LogOut, User, Lock } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import { Shield, LayoutDashboard, Radar, Smartphone, Trash2, LogOut, User, Lock, Languages } from 'lucide-react';
+import { useAppStore, useLangStore } from '@/lib/store';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, clearAuth } = useAppStore();
+  const { lang, setLang } = useLangStore();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -78,6 +79,10 @@ export default function Sidebar() {
           </div>
         </div>
 
+        <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all mb-1">
+          <Languages className="w-4 h-4" />
+          {lang === 'en' ? 'العربية' : 'English'}
+        </button>
         <button onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all">
           <LogOut className="w-4 h-4" />

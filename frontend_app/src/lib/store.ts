@@ -86,3 +86,26 @@ export const useAppStore = create<AppStore>()(
     }
   )
 );
+
+// Language store (separate for simplicity)
+import { create as createLang } from 'zustand';
+import { persist as persistLang } from 'zustand/middleware';
+
+interface LangStore {
+  lang: 'en' | 'ar';
+  setLang: (lang: 'en' | 'ar') => void;
+}
+
+export const useLangStore = createLang<LangStore>()(
+  persistLang(
+    (set) => ({
+      lang: 'en',
+      setLang: (lang) => {
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = lang;
+        set({ lang });
+      },
+    }),
+    { name: 'sovereign-lang' }
+  )
+);
