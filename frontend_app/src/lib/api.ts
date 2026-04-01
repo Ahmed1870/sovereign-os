@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sovereign-os-production-06e0.up.railway.app';
 
 export const apiClient = axios.create({
   baseURL: API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL,
