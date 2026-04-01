@@ -21,7 +21,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://*.supabase.co https://your-api.railway.app",
+              "connect-src 'self' https://*.supabase.co https://sovereign-os-production-06e0.up.railway.app",
             ].join('; '),
           },
         ],
