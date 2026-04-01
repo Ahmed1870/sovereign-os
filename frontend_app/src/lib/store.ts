@@ -16,21 +16,16 @@ interface DashboardStats {
   platforms_exposed: number;
   deletion_requests_sent: number;
   last_scan_at: string | null;
-  alerts: object[];
+  alerts: any[];
 }
 
 interface AppStore {
-  // Auth
   user: User | null;
   token: string | null;
   setAuth: (user: User, token: string) => void;
   clearAuth: () => void;
-
-  // Dashboard
   dashboardStats: DashboardStats | null;
   setDashboardStats: (stats: DashboardStats) => void;
-
-  // Scan state
   isScanning: boolean;
   scanProgress: number;
   scanResults: object | null;
@@ -38,8 +33,6 @@ interface AppStore {
   setScanProgress: (progress: number) => void;
   setScanResults: (results: object) => void;
   clearScanResults: () => void;
-
-  // UI state
   activePage: string;
   setActivePage: (page: string) => void;
   sidebarOpen: boolean;
@@ -49,7 +42,6 @@ interface AppStore {
 export const useAppStore = create<AppStore>()(
   persist(
     (set) => ({
-      // Auth
       user: null,
       token: null,
       setAuth: (user, token) => {
@@ -60,12 +52,8 @@ export const useAppStore = create<AppStore>()(
         if (typeof window !== 'undefined') localStorage.removeItem('sovereign_token');
         set({ user: null, token: null, dashboardStats: null });
       },
-
-      // Dashboard
       dashboardStats: null,
       setDashboardStats: (stats) => set({ dashboardStats: stats }),
-
-      // Scan
       isScanning: false,
       scanProgress: 0,
       scanResults: null,
@@ -73,8 +61,6 @@ export const useAppStore = create<AppStore>()(
       setScanProgress: (scanProgress) => set({ scanProgress }),
       setScanResults: (scanResults) => set({ scanResults, isScanning: false, scanProgress: 100 }),
       clearScanResults: () => set({ scanResults: null, scanProgress: 0 }),
-
-      // UI
       activePage: 'dashboard',
       setActivePage: (activePage) => set({ activePage }),
       sidebarOpen: true,
@@ -87,22 +73,20 @@ export const useAppStore = create<AppStore>()(
   )
 );
 
-// Language store (separate for simplicity)
-import { create as createLang } from 'zustand';
-import { persist as persistLang } from 'zustand/middleware';
-
 interface LangStore {
   lang: 'en' | 'ar';
   setLang: (lang: 'en' | 'ar') => void;
 }
 
-export const useLangStore = createLang<LangStore>()(
-  persistLang(
+export const useLangStore = create<LangStore>()(
+  persist(
     (set) => ({
       lang: 'en',
       setLang: (lang) => {
-        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-        document.documentElement.lang = lang;
+        if (typeof window !== 'undefined') {
+          document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+          document.documentElement.lang = lang;
+        }
         set({ lang });
       },
     }),
