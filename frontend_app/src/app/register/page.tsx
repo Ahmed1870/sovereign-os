@@ -66,7 +66,7 @@ export default function RegisterPage() {
       toast.success(c.successMsg);
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || c.errorMsg);
+      console.error(JSON.stringify(err.response?.data), err.message); toast.error(err.response?.data?.detail || err.message || c.errorMsg);
     } finally { setLoading(false); }
   };
 
