@@ -7,12 +7,20 @@ import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
-const navItems = [
-  { href: '/dashboard',         icon: LayoutDashboard, label: 'Command Center' },
-  { href: '/dashboard/scan',    icon: Radar,            label: 'Identity Radar'  },
-  { href: '/dashboard/device',  icon: Smartphone,       label: 'Device Monitor'  },
-  { href: '/dashboard/privacy', icon: Trash2,           label: 'Shadow Cleaner'  },
-];
+const navItems = {
+  en: [
+    { href: '/dashboard',         icon: LayoutDashboard, label: 'Command Center' },
+    { href: '/dashboard/scan',    icon: Radar,            label: 'Identity Radar'  },
+    { href: '/dashboard/device',  icon: Smartphone,       label: 'Device Monitor'  },
+    { href: '/dashboard/privacy', icon: Trash2,           label: 'Shadow Cleaner'  },
+  ],
+  ar: [
+    { href: '/dashboard',         icon: LayoutDashboard, label: 'مركز القيادة'    },
+    { href: '/dashboard/scan',    icon: Radar,            label: 'رادار الهوية'    },
+    { href: '/dashboard/device',  icon: Smartphone,       label: 'مراقب الجهاز'   },
+    { href: '/dashboard/privacy', icon: Trash2,           label: 'منظف الظل'      },
+  ],
+};
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -23,12 +31,26 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try { await api.auth.logout(); } catch {}
     clearAuth();
-    toast.success('Signed out.');
+    toast.success(lang === 'ar' ? 'تم تسجيل الخروج' : 'Signed out.');
     router.push('/');
   };
 
+  const toggleLang = () => {
+    const newLang = lang === 'en' ? 'ar' : 'en';
+    setLang(newLang);
+    if (typeof window !== 'undefined') {
+      document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = newLang;
+    }
+  };
+
+  const items = navItems[lang];
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-void-800/80 backdrop-blur-xl border-r border-white/[0.06] flex flex-col z-20">
+    <aside
+      className="fixed left-0 top-0 h-screen w-64 bg-void-800/80 backdrop-blur-xl border-r border-white/[0.06] flex flex-col z-20"
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+    >
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-white/[0.06]">
         <div className="w-8 h-8 rounded-lg bg-sovereign-600 flex items-center justify-center shadow-sovereign">
@@ -42,7 +64,7 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map(({ href, icon: Icon, label }) => {
+        {items.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
           return (
             <Link key={href} href={href}
@@ -60,7 +82,6 @@ export default function Sidebar() {
 
       {/* User section */}
       <div className="px-3 py-4 border-t border-white/[0.06] space-y-1">
-        {/* Subscription badge */}
         <div className="px-3 py-2 mb-2">
           <div className="flex items-center gap-2">
             <Lock className="w-3 h-3 text-sovereign-400" />
@@ -79,14 +100,21 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <button onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all mb-1">
+        {/* Language Toggle */}
+        <button
+          onClick={toggleLang}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all"
+        >
           <Languages className="w-4 h-4" />
           {lang === 'en' ? 'العربية' : 'English'}
         </button>
-        <button onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all">
+
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all"
+        >
           <LogOut className="w-4 h-4" />
-          Sign Out
+          {lang === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}
         </button>
       </div>
     </aside>
